@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuegos Artificiales</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        canvas {
+            display: block;
+        }
+        #stopButton {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: red;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        #text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            color: gold;
+            font-family: 'Arial', sans-serif;
+            text-shadow: 0 0 15px gold, 0 0 30px gold, 0 0 45px gold;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworksCanvas"></canvas>
+    <button id="stopButton">Detener Fuegos Artificiales</button>
+    <div id="text">Gaby</div>
+
+    <script>
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+        let animationFrameId; // Variable para almacenar el ID de la animación
+        const textElement = document.getElementById('text');
+        let textVisible = false;
+
+        // Función para crear partículas de los fuegos artificiales
+        function createFirework(x, y, color) {
+            const particleCount = 100;
+            for (let i = 0; i < particleCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 1;
+                const velocity = { 
+                    x: Math.cos(angle) * speed,
+                    y: Math.sin(angle) * speed
+                };
+                particles.push(new Particle(x, y, velocity, color));
+            }
+        }
+
+        // Partícula de los fuegos artificiales
+        class Particle {
+            constructor(x, y, velocity, color) {
+                this.x = x;
+                this.y = y;
+                this.velocity = velocity;
+                this.color = color;
+                this.alpha = 1;
+                this.size = Math.random() * 3 + 1;
+            }
+
+            update() {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.velocity.y += 0.05;  // Gravedad
+
+                this.alpha -= 0.01;  // Desvanecimiento
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.fill();
+            }
+        }
+
+        // Función para crear explosiones al azar
+        function randomExplosion() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height / 2; // Solo arriba de la mitad de la pantalla
+            const colors = ['#FF0000', '#00FF00', '#0000FF', '#FF00FF', '#FFFF00', '#00FFFF'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            createFirework(x, y, color);
+        }
+
+        // Función para mostrar la palabra "Gaby" en el centro de la pantalla
+        function showText() {
+            if (!textVisible) {
+                textElement.style.opacity = 1; // Hacer visible el texto
+                textVisible = true;
+                setTimeout(() => {
+                    textElement.style.opacity = 0; // Desvanecer el texto después de 3 segundos
+                    textVisible = false;
+                }, 3000);
+            }
+        }
+
+        // Animación de los fuegos artificiales
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Actualizar partículas
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+
+                // Eliminar partículas que se desvanecen completamente
+                if (particle.alpha <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            // Continuar la animación
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        // Iniciar animación y generar explosiones aleatorias
+        setInterval(randomExplosion, 1000); // Explosiones cada segundo
+        animate(); // Iniciar animación
+
+        // Botón para detener la animación
+        const stopButton = document.getElementById('stopButton');
+        stopButton.addEventListener('click', () => {
+            cancelAnimationFrame(animationFrameId);  // Detener la animación
+            particles = [];  // Limpiar las partículas
+            alert('La animación ha sido detenida');
+        });
+
+        // Generar una explosión para mostrar el texto "Gaby" en el centro
+        setTimeout(() => {
+            randomExplosion(); // Generar explosión
+            showText(); // Mostrar el texto "Gaby"
+        }, 3000); // Aparecerá después de 3 segundos
+
+    </script>
+</body>
+</html>
